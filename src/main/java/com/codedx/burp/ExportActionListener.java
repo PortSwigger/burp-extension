@@ -164,27 +164,39 @@ public class ExportActionListener implements ActionListener{
 	}
 	
 	protected IScanIssue[] getIssues(){
-		String target = burpExtender.getTargetUrl();
-		IScanIssue[] issues = callbacks.getScanIssues(target);
-		if(target != null && hasMismatchedTargets(target)){
-			List<IScanIssue> lst = new ArrayList<IScanIssue>();
-			for(IScanIssue issue: issues){
-				if(issue.getHttpService().toString().equals(target))
-					lst.add(issue);
-			}
-			issues = lst.toArray(new IScanIssue[lst.size()]);
-		}
+		List<String> targets = burpExtender.getSelectedTargetUrls();
+		String[] allTargets = burpExtender.getTargetUrls();
 		
-		return issues;
+		ArrayList<IScanIssue> issues = new ArrayList<IScanIssue>();
+		for(String target: targets) {
+			IScanIssue[] target_issues = callbacks.getScanIssues(target);
+			if(target != null && hasMismatchedTargets(target, allTargets)){
+				List<IScanIssue> lst = filterIssues(target, target_issues);
+				issues.addAll(lst);
+			} else {
+				for(IScanIssue issue: target_issues)
+					issues.add(issue);
+			}
+		}
+		return issues.toArray(new IScanIssue[0]);
+	}
+	
+	private List<IScanIssue> filterIssues(String target, IScanIssue[] issues){
+		List<IScanIssue> lst = new ArrayList<IScanIssue>();
+		for(IScanIssue issue: issues){
+			if(BurpExtender.httpServiceToString(issue.getHttpService()).equals(target))
+				lst.add(issue);
+		}
+		return lst;
 	}
 	
 	// Finds if any of the targets are prefixed by the selected target.
 	// This is required because the getScanIssues function uses the target url
 	// as a prefix. Any url that starts with the given prefix will match. If
 	// any URLs match, they need to be filtered.
-	private boolean hasMismatchedTargets(String selected){
-		for(String target : burpExtender.getTargetUrls()){
-			if(target != null && selected != null && target.startsWith(selected)){
+	private boolean hasMismatchedTargets(String selected, String[] allTargets){
+		for(String target : allTargets){
+			if(target != null && selected != null && target.startsWith(selected) && !target.equals(selected)){
 				return true;
 			}
 		}
