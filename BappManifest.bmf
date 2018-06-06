@@ -3,7 +3,7 @@ ExtensionType: 1
 Name: Code Dx
 RepoName: code-dx
 ScreenVersion: 1.1.0
-SerialVersion: 2
+SerialVersion: 3
 MinPlatformVersion: 0
 ProOnly: True
 Author: Code Dx, Inc.
